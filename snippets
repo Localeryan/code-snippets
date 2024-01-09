@@ -3,5 +3,112 @@
 
 // How to update the look of a product card based off data
 
+$('body').on('click', '.product-card-wrapper .card__inner a', function(e) {
+ let data = {      
+                "Product_id": currentobj.closest('.product-card-wrapper').attr('data-id')                
+              }   
+ jQuery.ajax({
+                type: 'GET',          
+                url: 'https://hook.us1.make.com/7r8zx6775nfd2nca4m8fbp7cwxz7t4e1',
+                data: data,
+                dataType: 'json',
+                success: function(data) { 
+                  console.log(data);
+                  if(data.Review_count > 0) {
+                    currentobj.find('.icp-product-info-rating').addClass('active');
+                    currentobj.find('.reviews-section').addClass('active');
+                    currentobj.find('.icp-product-score').html(parseFloat(data.Average_score).toFixed(1));
+                    currentobj.find('.rating-container .score').html(parseFloat(data.Average_score).toFixed(1));
+                    currentobj.find('.icp-product-counts .num_reviews').html(data.Review_count);                  
+                    currentobj.find('.reviews-star-container .total-count').html(data.Review_count + ' reviews');                  
+                    currentobj.find('.review-read-more a').attr('href', url);
+                    currentobj.find('.icp-product-star').html('');
+                    currentobj.find('.review-stars-box').html('');
+                    for(let j=1; j<=parseInt(data.Average_score); j++) {
+                      currentobj.find('.icp-product-star').html(currentobj.find('.icp-product-star').html() + '<i class="fa fa-star" aria-hidden="true"></i>');
+                      currentobj.find('.review-stars-box').html(currentobj.find('.review-stars-box').html() + '<i class="fa fa-star" aria-hidden="true"></i>');
+                    }
+                    if(parseFloat(data.Average_score) - parseInt(data.Average_score) > 0) {
+                      currentobj.find('.icp-product-star').html(currentobj.find('.icp-product-star').html() + '<i class="fa fa-star-half-o" aria-hidden="true"></i>');
+                      currentobj.find('.review-stars-box').html(currentobj.find('.review-stars-box').html() + '<i class="fa fa-star-half-o" aria-hidden="true"></i>');
+                    }
+                    if(parseInt(data.Average_score)+1 < 5) {
+                      for(let j=parseInt(data.Average_score)+1; j<5; j++) {
+                        currentobj.find('.icp-product-star').html(currentobj.find('.icp-product-star').html() + '<i class="fa fa-star-o" aria-hidden="true"></i>');
+                        currentobj.find('.review-stars-box').html(currentobj.find('.review-stars-box').html() + '<i class="fa fa-star-o" aria-hidden="true"></i>');
+                      }
+                    }
+                    const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+                    let tags = [];
+                    let sum = 0;
+                    for(let i=0; i<data.Product_reviews.length; i++) {
+                      for(let k=0; k<data.Product_reviews[i].Tags.length; k++) {
+                        tags.push(data.Product_reviews[i].Tags[k]);
+                      }            
+                      if(data.Product_reviews[i].Feedback != null && sum < 4) {
+                        let template = $('.review-template').html();
+                        template = template.replace("review-template-name",data.Product_reviews[i].Name);              
+                        template = template.replace("review-template-feedback",data.Product_reviews[i].Feedback);
+                        for(let j=1; j<=data.Product_reviews[i].Stars; j++) {
+                          template = template.replace("review-stars star" + j,"review-stars active");
+                        }              
+                        let d = new Date(data.Product_reviews[i].Date);              
+                        template = template.replace("review-template-date",month[d.getMonth()] + ' ' + d.getFullYear());
+                        template = template.replace("review-template-feedback",data.Product_reviews[i].Stars);
+                        currentobj.find('.review-container').append(template);
+                        sum++;
+                      }
+                    }
+                    console.log(tags);
+                    let newArr = [];
+                    let dupArr = [];
+                    let index = 0;
+                    let count = 0;
+                    for (let i = 0; i < tags.length; i++) {            
+                      if (newArr.indexOf(tags[i]) < 0) {
+                        newArr[index] = tags[i];
+                          index++;
+                      }
+                    }
+                    console.log(newArr);
+                    for (let i = 0; i < newArr.length; i++) {            
+                      count = 0;
+                      for (let j = 0; j < tags.length; j++) {      
+                        if(newArr[i] == tags[j])
+                          count++;
+                      }
+                      dupArr.push({'tag': newArr[i], 'count': count});
+                    }
+                    console.log(dupArr);
+                    let top3 = dupArr.slice().sort(function (a, b) { return b.count - a.count; }).slice(0, 3);              
+                    console.log(top3);
+                    if(top3.length > 0) {
+                      for (let i = 0; i < top3.length; i++) {                        
+                        $('.review-tag-list').append('<div class="review-tag">' + top3[i].tag + '</div>');
+                      }
+                    } else {
+                      $('.review-tag-container').hide();
+                    }
+                  }
+                }
+              }); 
+}
 
-// 
+
+
+
+// Send webook to get product reviews when page loads
+
+   $(document).ready(function() {  
+
+ let data = {
+"Product_id": $('.icp-product-variant-id').val()
+}
+      jQuery.ajax({
+        type: 'GET',          
+        url: 'https://hook.us1.make.com/7r8zx6775nfd2nca4m8fbp7cwxz7t4e1',
+        data: data,
+        dataType: 'json',
+        success: function(data) {}
+});
+}
